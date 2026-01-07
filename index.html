@@ -109,6 +109,18 @@
 			color: white;
 			font-size: 16px;
 		}
+		.lightbox-loader {
+			border: 4px solid rgba(255,255,255,0.3);
+			border-top-color: white;
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			animation: spin 0.8s linear infinite;
+			position: absolute;
+		}
+		.lightbox-loader.hidden { display: none; }
+		.lightbox img.loading { opacity: 0; }
+		@keyframes spin { to { transform: rotate(360deg); } }
 		.hero-photos {
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
@@ -364,6 +376,7 @@
 	<div class="lightbox" id="lightbox">
 		<span class="lightbox-close">&times;</span>
 		<span class="lightbox-nav lightbox-prev">&#10094;</span>
+		<div class="lightbox-loader hidden"></div>
 		<img src="" alt="Photo">
 		<span class="lightbox-nav lightbox-next">&#10095;</span>
 		<div class="lightbox-counter"><span id="lb-current">1</span> / <span id="lb-total">83</span></div>
@@ -373,15 +386,30 @@
 	(function() {
 		const lb = document.getElementById('lightbox');
 		const lbImg = lb.querySelector('img');
+		const lbLoader = lb.querySelector('.lightbox-loader');
 		const lbCurrent = document.getElementById('lb-current');
 		const links = Array.from(document.querySelectorAll('.photos a'));
 		let idx = 0;
 
 		function show(i) {
 			idx = (i + links.length) % links.length;
-			lbImg.src = links[idx].href;
 			lbCurrent.textContent = idx + 1;
 			lb.classList.add('active');
+			// Show loader, hide image
+			lbImg.classList.add('loading');
+			lbLoader.classList.remove('hidden');
+			// Load new image
+			const newSrc = links[idx].href;
+			if (lbImg.src === newSrc && lbImg.complete) {
+				lbImg.classList.remove('loading');
+				lbLoader.classList.add('hidden');
+			} else {
+				lbImg.onload = () => {
+					lbImg.classList.remove('loading');
+					lbLoader.classList.add('hidden');
+				};
+				lbImg.src = newSrc;
+			}
 		}
 
 		function hide() { lb.classList.remove('active'); }
